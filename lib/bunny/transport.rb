@@ -58,6 +58,7 @@ module Bunny
       @writes_mutex       = @session.mutex_impl.new
 
       @socket = nil
+      @socket_impl = @opts.fetch(:socket_impl, ::Socket)
 
       prepare_tls_context(opts) if @tls_enabled
     end
@@ -298,8 +299,9 @@ module Bunny
     def initialize_socket
       begin
         @socket = Bunny::SocketImpl.open(@host, @port,
-          :keepalive      => @opts[:keepalive],
-          :connect_timeout => @connect_timeout)
+          :keepalive       => @opts[:keepalive],
+          :connect_timeout => @connect_timeout,
+          :socket_impl     => @socket_impl)
       rescue StandardError, ClientTimeout => e
         @status = :not_connected
         raise Bunny::TCPConnectionFailed.new(e, self.hostname, self.port)
